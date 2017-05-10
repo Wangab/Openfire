@@ -1,8 +1,4 @@
-/**
- * $RCSfile: $
- * $Revision: $
- * $Date: $
- *
+/*
  * Copyright (C) 2005-2008 Jive Software. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,7 +22,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -1314,9 +1309,10 @@ public class PubSubPersistenceManager {
 			try {
                 LinkedListNode<PublishedItem> delHead = delItem.previous;
 				pstmt = con.prepareStatement(DELETE_ITEM);
-
+                Boolean hasBatchItems = false;
                 while (delItem != delHead)
                 {
+                    hasBatchItems = true;
                 	PublishedItem item = delItem.object;
                     pstmt.setString(1, item.getNode().getService().getServiceID());
                     pstmt.setString(2, encodeNodeID(item.getNode().getNodeID()));
@@ -1325,7 +1321,7 @@ public class PubSubPersistenceManager {
 
                     delItem = delItem.next;
                 }
-				pstmt.executeBatch();
+				if (hasBatchItems) pstmt.executeBatch();
 			} catch (SQLException ex) {
 				log.error("Failed to delete published item(s) from DB", ex);
 				// do not re-throw here; continue with insert operation if possible
@@ -1359,8 +1355,10 @@ public class PubSubPersistenceManager {
         PublishedItem item = null;       
     	try {
 			pstmt = con.prepareStatement(ADD_ITEM);
+            Boolean hasBatchItems = false;
             while (addItem != addHead)
             {
+                hasBatchItems = true;
             	wrappedItem = addItem.object;
             	item = wrappedItem.get();
                 pstmt.setString(1, item.getNode().getService().getServiceID());
@@ -1386,7 +1384,7 @@ public class PubSubPersistenceManager {
                 }
                 addItem = addItem.next;
             }
-            if (batch) { pstmt.executeBatch(); }			
+            if (batch && hasBatchItems) { pstmt.executeBatch(); }			
     	} catch (SQLException se) {
 			log.error("Failed to persist published items as batch; will retry individually", se);
 			// caught by caller; should not cause a transaction rollback
@@ -1880,8 +1878,10 @@ public class PubSubPersistenceManager {
 			PreparedStatement purgeNode = con
 					.prepareStatement(getPurgeStatement(DbConnectionManager.getDatabaseType()));
 
+            Boolean hasBatchItems = false;
             while (rs.next())
             {
+                hasBatchItems = true;
             	String svcId = rs.getString(1);
             	String nodeId = rs.getString(2);
             	int maxItems = rs.getInt(3);
@@ -1890,7 +1890,7 @@ public class PubSubPersistenceManager {
 
 				purgeNode.addBatch();
             }
-			purgeNode.executeBatch();
+			if (hasBatchItems) purgeNode.executeBatch();
 		}
 		catch (Exception sqle)
 		{

@@ -1,7 +1,4 @@
-/**
- * $Revision: $
- * $Date: $
- *
+/*
  * Copyright (C) 2005-2008 Jive Software. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -149,7 +146,12 @@ public class HttpBindServlet extends HttpServlet {
         final AsyncContext context = request.startAsync();
 
         // Asynchronously reads the POSTed input, then triggers #processContent.
-        request.getInputStream().setReadListener(new ReadListenerImpl(context));
+        try {
+            request.getInputStream().setReadListener(new ReadListenerImpl(context));
+        } catch (IllegalStateException e) {
+            Log.warn("Error when setting read listener", e);
+            context.complete();
+        }
     }
 
     protected void processContent(AsyncContext context, String content)

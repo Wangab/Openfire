@@ -1,8 +1,4 @@
-/**
- * $RCSfile$
- * $Revision: 2911 $
- * $Date: 2005-10-03 12:35:52 -0300 (Mon, 03 Oct 2005) $
- *
+/*
  * Copyright (C) 2004-2008 Jive Software. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -70,7 +66,7 @@ public class OfflineMessageStore extends BasicModule implements UserEventListene
         "INSERT INTO ofOffline (username, messageID, creationDate, messageSize, stanza) " +
         "VALUES (?, ?, ?, ?, ?)";
     private static final String LOAD_OFFLINE =
-        "SELECT stanza, creationDate FROM ofOffline WHERE username=?";
+        "SELECT stanza, creationDate FROM ofOffline WHERE username=? ORDER BY creationDate ASC";
     private static final String LOAD_OFFLINE_MESSAGE =
         "SELECT stanza FROM ofOffline WHERE username=? AND creationDate=?";
     private static final String SELECT_SIZE_OFFLINE =
